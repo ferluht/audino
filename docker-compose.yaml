@@ -8,8 +8,8 @@ services:
       - ./backend/venv:/app/backend/venv
       - backend_data:/root/uploads
     environment:
-      ADMIN_USERNAME: "admin"
-      ADMIN_PASSWORD: "password"
+      ADMIN_USERNAME: "aijam"
+      ADMIN_PASSWORD: "aijam"
       DATABASE_URL: "mysql+pymysql://audino:audino@mysql/audino?charset=utf8mb4"
       FLASK_APP: "app.py"
       FLASK_DEBUG: 1
@@ -63,9 +63,21 @@ services:
       - backend-network
 
 volumes:
-  mysql_data:
-  redis_data:
+  mysql_data: 
+    driver_opts:
+      type: none
+      device: ./data/mysql
+      o: bind
+  redis_data: 
+    driver_opts:
+      type: none
+      device: ./data/redis
+      o: bind
   backend_data:
+    driver_opts:
+      type: none
+      device: ./data/backend
+      o: bind
 
 networks:
   backend-network:

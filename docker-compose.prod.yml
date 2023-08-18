@@ -28,7 +28,7 @@ services:
     volumes:
       - www:/var/www/html:ro
     ports:
-      - 80:80
+      - 80:8090
     depends_on:
       - backend
     networks:

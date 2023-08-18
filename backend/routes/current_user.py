@@ -53,13 +53,12 @@ def fetch_data_for_project(project_id):
         if request_user not in project.users:
             return jsonify(message="Unauthorized access!"), 401
 
-        segmentations = db.session.query(Segmentation.data_id).distinct().subquery()
+        segmentations = db.session.query(Segmentation.data_id).filter(Segmentation.user_id == request_user.id).distinct().subquery()
 
         data = {}
 
         data["pending"] = (
             db.session.query(Data)
-            .filter(Data.assigned_user_id == request_user.id)
             .filter(Data.project_id == project_id)
             .filter(Data.id.notin_(segmentations))
             .distinct()
@@ -68,7 +67,6 @@ def fetch_data_for_project(project_id):
 
         data["completed"] = (
             db.session.query(Data)
-            .filter(Data.assigned_user_id == request_user.id)
             .filter(Data.project_id == project_id)
             .filter(Data.id.in_(segmentations))
             .distinct()
@@ -76,13 +74,12 @@ def fetch_data_for_project(project_id):
         )
 
         data["marked_review"] = Data.query.filter_by(
-            assigned_user_id=request_user.id,
             project_id=project_id,
             is_marked_for_review=True,
         ).order_by(Data.last_modified.desc())
 
         data["all"] = Data.query.filter_by(
-            assigned_user_id=request_user.id, project_id=project_id
+            project_id=project_id
         ).order_by(Data.last_modified.desc())
 
         paginated_data = data[active].paginate(page, 10, False)
@@ -94,11 +91,11 @@ def fetch_data_for_project(project_id):
                 {
                     "data_id": data_point.id,
                     "filename": data_point.filename,
-                    "original_filename": data_point.original_filename,
+                    "original_filename": data_point.filename, # data_point.original_filename,
                     "created_on": data_point.created_at.strftime("%B %d, %Y"),
                     "reference_transcription": data_point.reference_transcription,
                     "is_marked_for_review": data_point.is_marked_for_review,
-                    "number_of_segmentations": len(data_point.segmentations),
+                    "number_of_segmentations": len([s for s in data_point.segmentations if s.user_id == request_user.id]),
                 }
                 for data_point in paginated_data.items
             ]

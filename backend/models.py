@@ -51,8 +51,8 @@ class Data(db.Model):
         "project_id", db.Integer(), db.ForeignKey("project.id"), nullable=False
     )
 
-    assigned_user_id = db.Column(
-        "assigned_user_id", db.Integer(), db.ForeignKey("user.id"), nullable=False
+    assigned_user_ids = db.Column(
+        "assigned_user_ids", db.String(512), nullable=False
     )
 
     filename = db.Column("filename", db.String(100), nullable=False, unique=True)
@@ -80,7 +80,6 @@ class Data(db.Model):
     )
 
     project = db.relationship("Project")
-    assigned_user = db.relationship("User")
     segmentations = db.relationship("Segmentation", backref="Data")
 
     def update_marked_review(self, marked_review):
@@ -98,11 +97,7 @@ class Data(db.Model):
             "is_marked_for_review": self.is_marked_for_review,
             "created_at": self.created_at,
             "last_modified": self.last_modified,
-            "assigned_user": {
-                "id": self.assigned_user_id,
-                "username": self.assigned_user.username,
-                "role": self.assigned_user.role.role,
-            },
+            "assigned_user_ids": self.assigned_user_ids
         }
 
 
@@ -261,6 +256,8 @@ class Segmentation(db.Model):
     data_id = db.Column(
         "data_id", db.Integer(), db.ForeignKey("data.id"), nullable=False
     )
+    
+    user_id = db.Column("user_id", db.Integer(), nullable=False)
 
     start_time = db.Column("start_time", db.Float(), nullable=False)
 
@@ -300,6 +297,7 @@ class Segmentation(db.Model):
             "transcription": self.transcription,
             "created_at": self.created_at,
             "last_modified": self.last_modified,
+            "user_id": self.user_id
         }
 
 

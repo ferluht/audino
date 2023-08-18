@@ -36,7 +36,7 @@ class Annotate extends React.Component {
       segmentationUrl: `/api/projects/${projectId}/data/${dataId}/segmentations`,
       isDataLoading: false,
       wavesurfer: null,
-      zoom: 100,
+      zoom: 0,
       referenceTranscription: null,
       isMarkedForReview: false,
       selectedSegment: null,

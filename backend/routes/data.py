@@ -34,16 +34,17 @@ def validate_segmentation(segment):
     else:
         return False
 
-
 def generate_segmentation(
     annotations,
     transcription,
+    user_id,
     project_id,
     start_time,
     end_time,
     data_id,
     segmentation_id=None,
 ):
+    
     """Generate a Segmentation from the required segment information
     """
     if segmentation_id is None:
@@ -52,6 +53,7 @@ def generate_segmentation(
             start_time=start_time,
             end_time=end_time,
             transcription=transcription,
+            user_id=user_id
         )
     else:
         # segmentation updated for existing data
@@ -123,11 +125,7 @@ def add_data():
     if not project:
         raise NotFound(description="No project exist with given API Key")
 
-    username = request.form.get("username", None)
-    user = User.query.filter_by(username=username).first()
-
-    if not user:
-        raise NotFound(description="No user found with given username")
+    usernames = request.form.getlist("usernames")
 
     segmentations = request.form.get("segmentations", "[]")
     reference_transcription = request.form.get("reference_transcription", None)
@@ -145,13 +143,19 @@ def add_data():
     file_path = Path(app.config["UPLOAD_FOLDER"]).joinpath(filename)
     audio_file.save(file_path.as_posix())
 
+    user_ids = []
+    for username in usernames:
+        user = User.query.filter_by(username=username).first()
+        if not user: continue
+        user_ids.append(user.id)
+        
     data = Data(
         project_id=project.id,
         filename=filename,
         original_filename=original_filename,
         reference_transcription=reference_transcription,
         is_marked_for_review=is_marked_for_review,
-        assigned_user_id=user.id,
+        assigned_user_ids=','.join([str(uid) for uid in user_ids]),
     )
     db.session.add(data)
     db.session.flush()
